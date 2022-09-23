@@ -15,12 +15,22 @@ const scriptProperties = PropertiesService.getScriptProperties()
 
 function setup(){
 
-  ScriptApp.newTrigger("progress").timeBased().atHour(RESET_TIME[0]).nearMinute(RESET_TIME[1]).everyDays(1).create()
-  // Can replace "progress" (which by default sets the progress bar to 0) with "reload" if facing issue with changing time zones, or can specify the time zone - https://developers.google.com/apps-script/reference/script/clock-trigger-builder#intimezonetimezone
+  ScriptApp.newTrigger("resetToZero").timeBased().atHour(RESET_TIME[0]).nearMinute(RESET_TIME[1]).everyDays(1).create()
+  /*
+  Can replace "resetToZero" (which by default sets the progress bar to 0) with "reload" if facing issue with changing time zones, or can specify the time zone - https://developers.google.com/apps-script/reference/script/clock-trigger-builder#intimezonetimezone
+  */
 
   createWebhook()
+  
   reload() //to calculate dailies and put/replace progress bar on profile
 
+}
+
+function resetToZero(){
+  /*
+  Using this 'cause function declaration progress(fraction=0) doesn't work with the trigger, nor does calling progress(0) in the trigger
+  */
+  progress(0)
 }
 
 function reload(){
@@ -82,7 +92,7 @@ function doPost(e){
 
 }
 
-function progress(fraction=0){
+function progress(fraction){
   const percent = Math.round(100*fraction)
   const profileBio = "My dailies' progress:\n\n![](https://progress-bar.dev/"+percent+"/)"
   const params = {
