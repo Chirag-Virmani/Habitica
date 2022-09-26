@@ -1,7 +1,7 @@
 const USER_ID = ""
 const API_TOKEN = ""
 const WEB_APP_URL = ""
-const RESET_TIME = [2,0] //hour,minute //before you start working on your dailies of the day
+const RESET_TIME = [2,0] //hour,minute //before you start working on your Dailies of the day
 
 const authorID = "236f76d4-3789-4866-aade-9f8be9d72fef"
 const scriptName = "Profile Dailies Progress Bar"
@@ -12,17 +12,16 @@ const headers = {
 }
 
 const scriptProperties = PropertiesService.getScriptProperties()
+// This is to avoid fetching data of all the Dailies from Habitica every time
 
 function setup(){
 
   ScriptApp.newTrigger("resetToZero").timeBased().atHour(RESET_TIME[0]).nearMinute(RESET_TIME[1]).everyDays(1).create()
-  /*
-  Can replace "resetToZero" (which by default sets the progress bar to 0) with "reload" if facing issue with changing time zones, or can specify the time zone - https://developers.google.com/apps-script/reference/script/clock-trigger-builder#intimezonetimezone
-  */
-
+  // Can replace "resetToZero" with "reload" if genuine need
+  
   createWebhook()
   
-  reload() //to calculate dailies and put/replace progress bar on profile
+  reload() //to calculate Dailies and put/replace progress bar on profile
 
 }
 
@@ -44,9 +43,9 @@ function reload(){
 
   let totalDue = totalDueAndCompleted = 0
   for (let i in dailies){
-    if (dailies[i].isDue == true) {
+    if (dailies[i].isDue) {
       totalDue++
-      if (dailies[i].completed == true)
+      if (dailies[i].completed)
         totalDueAndCompleted++
     }
   }
@@ -73,13 +72,14 @@ function doPost(e){
     if(type == "created")
       totalDue++
     else{
-      const completed = contents.task.completed
+      const isCompleted = contents.task.completed
       if(type == "deleted"){
         totalDue--
-        if(completed) totalDueAndCompleted--
+        if(isCompleted)
+          totalDueAndCompleted--
       }
-      else //i.e. if(type == "scored") //type "scored" refers to both scored and unscored, difference is in "completed"
-        completed ? totalDueAndCompleted++ : totalDueAndCompleted--
+      else //i.e. if(type == "scored") //type "scored" refers to both scored and unscored, difference is in "isCompleted"
+        isCompleted ? totalDueAndCompleted++ : totalDueAndCompleted--
     }
 
     scriptProperties.setProperty("totalDue", totalDue)
@@ -94,7 +94,7 @@ function doPost(e){
 
 function progress(fraction){
   const percent = Math.round(100*fraction)
-  const profileBio = "My dailies' progress:\n\n![](https://progress-bar.dev/"+percent+"/)"
+  const profileBio = "My Dailies' Progress:\n\n![](https://progress-bar.dev/"+percent+"/)"
   const params = {
     "method" : "put",
     "headers" : headers,
