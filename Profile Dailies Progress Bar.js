@@ -16,20 +16,13 @@ const scriptProperties = PropertiesService.getScriptProperties()
 
 function setup(){
 
-  ScriptApp.newTrigger("resetToZero").timeBased().atHour(RESET_TIME[0]).nearMinute(RESET_TIME[1]).everyDays(1).create()
-  // Can replace "resetToZero" with "reload" if genuine need
+  ScriptApp.newTrigger("reload").timeBased().atHour(RESET_TIME[0]).nearMinute(RESET_TIME[1]).everyDays(1).create()
+  // totalDueAndCompleted may be 0 at the start of the day but need to calculate totalDue
   
   createWebhook()
   
   reload() //to calculate Dailies and put/replace progress bar on profile
 
-}
-
-function resetToZero(){
-  /*
-  Using this 'cause function declaration progress(fraction=0) doesn't work with the trigger, nor does calling progress(0) in the trigger
-  */
-  progress(0)
 }
 
 function reload(){
@@ -82,9 +75,9 @@ function doPost(e){
         isCompleted ? totalDueAndCompleted++ : totalDueAndCompleted--
     }
 
+    progress(totalDueAndCompleted / totalDue)
     scriptProperties.setProperty("totalDue", totalDue)
     scriptProperties.setProperty("totalDueAndCompleted", totalDueAndCompleted)
-    progress(totalDueAndCompleted / totalDue)
     
   }
   
