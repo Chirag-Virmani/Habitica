@@ -43,9 +43,7 @@ function reload(){
     }
   }
 
-  progress(totalDueAndCompleted / totalDue)
-  scriptProperties.setProperty("totalDue", totalDue)
-  scriptProperties.setProperty("totalDueAndCompleted", totalDueAndCompleted)
+  progress(totalDueAndCompleted, totalDue)
 
 }
 
@@ -75,9 +73,7 @@ function doPost(e){
         isCompleted ? totalDueAndCompleted++ : totalDueAndCompleted--
     }
 
-    progress(totalDueAndCompleted / totalDue)
-    scriptProperties.setProperty("totalDue", totalDue)
-    scriptProperties.setProperty("totalDueAndCompleted", totalDueAndCompleted)
+    progress(totalDueAndCompleted, totalDue)
     
   }
   
@@ -85,16 +81,37 @@ function doPost(e){
 
 }
 
-function progress(fraction){
-  const percent = Math.round(100*fraction)
-  const profileBio = "My Dailies' Progress:\n\n![](https://progress-bar.dev/"+percent+"/)"
-  const params = {
+function progress(totalDueAndCompleted, totalDue){
+
+  scriptProperties.setProperty("totalDueAndCompleted", totalDueAndCompleted)
+  scriptProperties.setProperty("totalDue", totalDue)
+
+  const percent = Math.round(100*(totalDueAndCompleted/totalDue))
+  const progressText = "My Dailies' Progress:\n\n![Profile Dailies Progress Bar](https://progress-bar.dev/"+percent+"/)"
+  
+  const API_URL = "https://habitica.com/api/v3/user"
+
+  const fetchProfileBio = UrlFetchApp.fetch(API_URL+"?userFields=profile.blurb", {"method":"get", "headers":headers})
+  let profileBio = JSON.parse(fetchProfileBio).data.profile.blurb
+
+  if(profileBio=="")
+    profileBio = progressText
+  else{
+    const index = profileBio.indexOf(progressText.split(percent,1)) //index of start of progress bar
+    if(index == -1)
+      profileBio += "\n\n---\n"+progressText
+    else
+      profileBio = profileBio.substring(0,index) + (profileBio.substring(index)).replace(/\d+/,percent) //"replace" replaces only the first instance
+  }
+
+  const paramsUpdateProfileBio = {
     "method" : "put",
     "headers" : headers,
     "contentType" : "application/json",
     "payload" : JSON.stringify({"profile.blurb": profileBio})
   }
-  UrlFetchApp.fetch("https://habitica.com/api/v3/user", params)
+  UrlFetchApp.fetch(API_URL, paramsUpdateProfileBio)
+
 }
 
 function createWebhook() {
